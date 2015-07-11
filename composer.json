@@ -1,0 +1,32 @@
+{
+  "name": "bapcat/console",
+  "description": "",
+  "license": "GPLv3",
+  "homepage": "http://github.com/BapCat/Console",
+  "keywords": ["Console", "Command"],
+  "minimum-stability": "dev",
+  "authors": [
+    {
+      "name": "Corey Frenette",
+      "email": "corey@narwhunderful.com"
+    }, {
+      "name": "rascopeeko",
+      "email": "raskopeeko@gmail.com"
+    }, {
+      "name": "Jeff Ripley",
+      "email": "666v4nz@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.0",
+    "bapcat/values": "dev-master"
+  },
+  "require-dev": {
+    "satooshi/php-coveralls": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "BapCat\\Console\\": "src/"
+    }
+  }
+}
