@@ -1,55 +1,149 @@
 <?php namespace BapCat\Console;
 
+use BapCat\Values\Boolean;
 use BapCat\Values\ClassName;
 use BapCat\Values\Regex;
 use BapCat\Values\Text;
+
+use ICanBoogie\Inflector;
 
 use ReflectionClass;
 use ReflectionMethod;
 
 class CommandParser {
+  private $registry;
+  
   private $regex_params;
   private $regex_opts;
+  private $text_dash;
+  private $text_underscore;
+  private $inflector;
   
-  public function __construct() {
+  public function __construct(CommandRegistry $registry) {
+    $this->registry = $registry;
+    
     $this->regex_params = new Regex('#@param\h+?([\w\\\\]+)\h+?\$(\w+)\h+(?:\(short:\h(\w)\)\h+)?([\w\h]+)#');
     $this->regex_opts   = new Regex('#@opt\h+?\$(\w+)\h+(?:\(short:\h(\w)\)\h+)?([\w\h]+)#');
+    
+    $this->text_dash       = new Text('-');
+    $this->text_underscore = new Text('_');
+    
+    $this->inflector = Inflector::get();
   }
   
-  public function parse(ClassName $command_class) {
-    $docs   = $this->getDocBlock($command_class);
-    $params = $this->getParams($docs);
-    $opts   = $this->getOptions($docs);
+  public function parse(ClassName $class) {
+    $methods = $this->getMethods($class);
     
-    $this->validateClass($params, $opts);
+    $commands = new CommandCollection();
     
-    return new Executable($command_class, $params, $opts);
+    foreach($methods as $method) {
+      $name = $this->underscoreToDash(new Text($this->inflector->underscore($method->getName())));
+      
+      $method_params = $this->getMethodParameters($method);
+      $method_docs   = $this->getMethodDocBlock($method);
+      
+      $doc_params = $this->getParamsFromDocs($method_docs);
+      $doc_opts   = $this->getOptionsFromDocs($method_docs);
+      
+      $command = $this->buildCommand($name, $method_params, $doc_params, $doc_opts);
+    
+      //$this->validateClass($params, $opts);
+      
+      $commands->add($command);
+    }
+    
+    return new CommandGroup($class, $commands);
   }
   
-  private function getDocBlock(ClassName $command_class) {
-    $class = new ReflectionClass((string)$command_class);
-    $constructor = $class->getConstructor();
-    $docs = new Text($constructor->getDocComment());
+  private function getMethods(ClassName $class) {
+    $reflector = $class->reflect();
+    $methods = $reflector->getMethods(ReflectionMethod::IS_PUBLIC);
+    return $methods;
+  }
+  
+  private function getMethodDocBlock(ReflectionMethod $method) {
+    $docs = new Text($method->getDocComment());
     return $docs;
   }
   
-  private function getParams(Text $docs) {
-    $params = $this->regex_params->capture($docs);
-    
-    return new ParameterCollection(array_map(function(array $param) {
-      return new Parameter(new ClassName((string)$param[0]), $param[1], $param[3], !$param[2]->isEmpty() ? $param[2] : null);
-    }, $params));
+  private function getMethodParameters(ReflectionMethod $method) {
+    $params = $method->getParameters();
+    return $params;
   }
   
-  private function getOptions(Text $docs) {
-    $opts = $this->regex_opts->matches($docs);
+  private function getParamsFromDocs(Text $method_docs) {
+    $doc_params = [];
     
-    return new OptionCollection(array_map(function(array $opt) {
-      return new Option($opt[0], $opt[2], !$opt[1]->isEmpty() ? $opt[1] : null);
-    }, $opts));
+    foreach($this->regex_params->capture($method_docs) as $doc_param) {
+      $doc_params[(string)$doc_param[1]] = [
+        $doc_param[0], // Type
+        $doc_param[3], // Desc
+        $doc_param[2]  // Short
+      ];
+    }
+    
+    return $doc_params;
+  }
+  
+  private function getOptionsFromDocs(Text $method_docs) {
+    $doc_opts = [];
+    
+    foreach($this->regex_opts->capture($method_docs) as $doc_opt) {
+      $doc_opts[(string)$doc_opt[0]] = [
+        $doc_opt[2], // Desc
+        $doc_opt[1]  // Short
+      ];
+    }
+    
+    return $doc_opts;
+  }
+  
+  private function buildCommand(Text $name, array $method_params, array $doc_params, array $doc_opts) {
+    $params = new ParameterCollection();
+    $opts   = new OptionCollection();
+    $bad    = []; // Undocumented params
+    
+    while(count($method_params) != 0) {
+      $current = array_pop($method_params);
+      
+      if(array_key_exists($current->getName(), $doc_params)) {
+        $doc_param = $doc_params[$current->getName()];
+        $is_optional = new Boolean($current->isDefaultValueAvailable());
+        
+        $params->add(new Parameter(
+          new ClassName($current->getClass()->getName()),
+          $this->underscoreToDash(new Text($current->getName())),
+          $doc_param[1],
+          !$doc_param[2]->isEmpty() ? $doc_param[2] : null,
+          $is_optional
+        ));
+      } elseif(array_key_exists($current->getName(), $doc_opts)) {
+        $doc_opt = $doc_opts[$current->getName()];
+        
+        $opts->add(new Option(
+          $this->underscoreToDash(new Text($current->getName())),
+          $doc_opt[0],
+          !$doc_opt[1]->isEmpty() ? $doc_opt[1] : null
+        ));
+      } else {
+        $bad[] = $current;
+      }
+    }
+    
+    if(count($bad) != 0) {
+      //@TODO
+      var_dump($bad);
+      die('Bad commad def');
+    }
+    
+    return new Command($name, $params, $opts);
   }
   
   private function validateClass(ParameterCollection $params, OptionCollection $opts) {
     //@TODO
+  }
+  
+  private function underscoreToDash(Text $text) {
+    return $text->replace($this->text_underscore, $this->text_dash);
   }
 }
