@@ -1,6 +1,7 @@
 <?php namespace BapCat\Console;
 
 use BapCat\Interfaces\Ioc\Ioc;
+use BapCat\Values\Boolean;
 use BapCat\Values\ClassName;
 use BapCat\Values\Regex;
 use BapCat\Values\Text;
@@ -61,9 +62,9 @@ class ExecutionParser {
     
     $command = $group->commands->get((string)$command_name);
     $params  = $command->parameters->all();
+    $opts    = $command->options->all();
     
     $bindings = new ParameterBindingCollection();
-    $options  = new OptionCollection();
     
     $unused = [];
     
@@ -98,13 +99,13 @@ class ExecutionParser {
       if($part->matches($this->regex_opt_long)) {
         $name = $this->regex_opt_long->capture($part)[0][0];
         $opt = $command->options->getByName($name);
-        $options->add($opt);
-        unset($params[(string)$opt->name]);
+        $bindings->add(new ParameterBinding($opt->toParameter(), new Boolean(true)));
+        unset($opts[(string)$opt->name]);
       } elseif($part->matches($this->regex_opt_short)) {
         $name = $this->regex_opt_short->capture($part)[0][0];
         $opt = $command->options->getByShortName($name);
-        $options->add($opt);
-        unset($params[(string)$opt->name]);
+        $bindings->add(new ParameterBinding($opt->toParameter(), new Boolean(true)));
+        unset($opts[(string)$opt->name]);
       } else {
         array_unshift($unused, $part);
       }
@@ -114,10 +115,19 @@ class ExecutionParser {
     
     // Required params
     foreach($params as $param) {
-      $bindings->add(new ParameterBinding($param, array_shift($parts)));
+      if(!$param->is_optional->raw) {
+        $bindings->add(new ParameterBinding($param, array_shift($parts)));
+      } else {
+        $bindings->add(new ParameterBinding($param, null));
+      }
     }
     
-    return $this->ioc->make(Execution::class, [$group_binding, $command, $bindings, $options]);
+    foreach($opts as $opt) {
+      $opt = $command->options->getByName($opt->name);
+      $bindings->add(new ParameterBinding($opt->toParameter(), new Boolean(false)));
+    }
+    
+    return $this->ioc->make(Execution::class, [$group_binding, $command, $bindings]);
   }
   
   private function createValue(ClassName $type, Text $value) {

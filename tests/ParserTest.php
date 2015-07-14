@@ -60,7 +60,8 @@ class ParserTest extends PHPUnit_Framework_TestCase {
   }
   
   public function testParseExecution() {
-    $command = new Text('hello:say Corey --count=10 -a');
+    //$command = new Text('hello:say Corey --count=10 -a');
+    $command = new Text('hello Corey');
     
     $execution = $this->execution_parser->parse($command);
     $execution->execute();

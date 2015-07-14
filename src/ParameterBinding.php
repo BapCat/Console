@@ -9,7 +9,7 @@ class ParameterBinding {
   private $param;
   private $value;
   
-  public function __construct(Parameter $param, Value $value) {
+  public function __construct(Parameter $param, Value $value = null) {
     $this->param = $param;
     $this->value = $value;
   }
