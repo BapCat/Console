@@ -1,7 +1,6 @@
 <?php namespace BapCat\Console;
 
 use BapCat\Propifier\PropifierTrait;
-use BapCat\Values\Boolean;
 use BapCat\Values\ClassName;
 use BapCat\Values\Text;
 
@@ -19,7 +18,7 @@ class Option {
   }
   
   public function toParameter() {
-    return new Parameter(new ClassName(Boolean::class), $this->name, $this->description, $this->short_name, new Boolean(false));
+    return new Parameter(new ClassName(Optional::class), $this->name, $this->description, $this->short_name, false);
   }
   
   protected function getName() {

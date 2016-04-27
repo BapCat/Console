@@ -1,6 +1,5 @@
 <?php namespace BapCat\Console;
 
-use BapCat\Values\Boolean;
 use BapCat\Values\ClassName;
 use BapCat\Values\Regex;
 use BapCat\Values\Text;
@@ -108,14 +107,13 @@ class CommandParser {
       
       if(array_key_exists($current->getName(), $doc_params)) {
         $doc_param = $doc_params[$current->getName()];
-        $is_optional = new Boolean($current->isDefaultValueAvailable());
         
         $params->add(new Parameter(
           new ClassName($current->getClass()->getName()),
           $this->underscoreToDash(new Text($current->getName())),
           $doc_param[1],
-          !$doc_param[2]->isEmpty() ? $doc_param[2] : null,
-          $is_optional
+          !$doc_param[2]->is_empty ? $doc_param[2] : null,
+          $current->isDefaultValueAvailable()
         ));
       } elseif(array_key_exists($current->getName(), $doc_opts)) {
         $doc_opt = $doc_opts[$current->getName()];
@@ -123,7 +121,7 @@ class CommandParser {
         $opts->add(new Option(
           $this->underscoreToDash(new Text($current->getName())),
           $doc_opt[0],
-          !$doc_opt[1]->isEmpty() ? $doc_opt[1] : null
+          !$doc_opt[1]->is_empty ? $doc_opt[1] : null
         ));
       } else {
         $bad[] = $current;

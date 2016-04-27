@@ -15,7 +15,6 @@ use BapCat\Console\OptionCollection;
 use BapCat\Interfaces\Ioc\Ioc;
 use BapCat\Phi\Phi;
 use BapCat\Values\ClassName;
-use BapCat\Values\PositiveInteger;
 use BapCat\Values\Text;
 
 class ParserTest extends PHPUnit_Framework_TestCase {
@@ -41,8 +40,8 @@ class ParserTest extends PHPUnit_Framework_TestCase {
     $this->execution_parser = $ioc->make(ExecutionParser::class);
     
     /*$this->expected_params = new ParameterCollection([
-      new Parameter(new ClassName(Text::class),          new Text('name'),  new Text('The name of the person to say hello to'), new Text('n')),
-      new Parameter(new ClassName(PositiveInteger::class), new Text('count'), new Text('The number of times to say hello'))
+      new Parameter(new ClassName(Text::class),   new Text('name'),  new Text('The name of the person to say hello to'), new Text('n')),
+      new Parameter(new ClassName(Number::class), new Text('count'), new Text('The number of times to say hello'))
     ]);
     
     $this->expected_opts = new OptionCollection([

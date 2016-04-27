@@ -7,6 +7,7 @@ class CommandCollection implements Collection {
   use ReadableCollectionTrait;
   
   protected $collection = [];
+  protected $lazy = [];
   
   public function __new(array $array) {
     return new CommandCollection();

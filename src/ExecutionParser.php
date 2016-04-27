@@ -1,7 +1,7 @@
 <?php namespace BapCat\Console;
 
+use BapCat\Console\Optional;
 use BapCat\Interfaces\Ioc\Ioc;
-use BapCat\Values\Boolean;
 use BapCat\Values\ClassName;
 use BapCat\Values\Regex;
 use BapCat\Values\Text;
@@ -99,12 +99,12 @@ class ExecutionParser {
       if($part->matches($this->regex_opt_long)) {
         $name = $this->regex_opt_long->capture($part)[0][0];
         $opt = $command->options->getByName($name);
-        $bindings->add(new ParameterBinding($opt->toParameter(), new Boolean(true)));
+        $bindings->add(new ParameterBinding($opt->toParameter(), new Optional(true)));
         unset($opts[(string)$opt->name]);
       } elseif($part->matches($this->regex_opt_short)) {
         $name = $this->regex_opt_short->capture($part)[0][0];
         $opt = $command->options->getByShortName($name);
-        $bindings->add(new ParameterBinding($opt->toParameter(), new Boolean(true)));
+        $bindings->add(new ParameterBinding($opt->toParameter(), new Optional(true)));
         unset($opts[(string)$opt->name]);
       } else {
         array_unshift($unused, $part);
@@ -115,7 +115,7 @@ class ExecutionParser {
     
     // Required params
     foreach($params as $param) {
-      if(!$param->is_optional->raw) {
+      if(!$param->is_optional) {
         $bindings->add(new ParameterBinding($param, array_shift($parts)));
       } else {
         $bindings->add(new ParameterBinding($param, null));
@@ -124,7 +124,7 @@ class ExecutionParser {
     
     foreach($opts as $opt) {
       $opt = $command->options->getByName($opt->name);
-      $bindings->add(new ParameterBinding($opt->toParameter(), new Boolean(false)));
+      $bindings->add(new ParameterBinding($opt->toParameter(), new Optional(false)));
     }
     
     return $this->ioc->make(Execution::class, [$group_binding, $command, $bindings]);

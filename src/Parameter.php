@@ -1,7 +1,6 @@
 <?php namespace BapCat\Console;
 
 use BapCat\Propifier\PropifierTrait;
-use BapCat\Values\Boolean;
 use BapCat\Values\ClassName;
 use BapCat\Values\Text;
 
@@ -14,7 +13,7 @@ class Parameter {
   private $short_name;
   private $is_optional;
   
-  public function __construct(ClassName $type, Text $name, Text $description, Text $short_name = null, Boolean $is_optional) {
+  public function __construct(ClassName $type, Text $name, Text $description, Text $short_name = null, $is_optional) {
     $this->type        = $type;
     $this->name        = $name;
     $this->description = $description;

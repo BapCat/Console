@@ -1,7 +1,6 @@
 <?php namespace BapCat\Console;
 
 use BapCat\Interfaces\Ioc\Ioc;
-use BapCat\Values\Boolean;
 
 class Execution {
   private $ioc;
@@ -29,6 +28,6 @@ class Execution {
     $instance = $this->ioc->make($this->binding);
     
     $command_name = (string)$this->command->name;
-    return $this->ioc->execute($instance, $command_name, $args);
+    return $this->ioc->call([$instance, $command_name], $args);
   }
 }
