@@ -14,10 +14,6 @@ class CommandGroup {
     $this->commands = $commands;
   }
   
-  public function __new(array $array) {
-    
-  }
-  
   protected function getClass() {
     return $this->class;
   }

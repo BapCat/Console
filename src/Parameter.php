@@ -13,7 +13,7 @@ class Parameter {
   private $short_name;
   private $is_optional;
   
-  public function __construct(ClassName $type, Text $name, Text $description, Text $short_name = null, $is_optional) {
+  public function __construct(ClassName $type, Text $name, Text $description, Text $short_name = null, $is_optional = false) {
     $this->type        = $type;
     $this->name        = $name;
     $this->description = $description;

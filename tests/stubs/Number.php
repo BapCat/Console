@@ -9,6 +9,8 @@ class Number extends Value {
     if(filter_var($value, FILTER_VALIDATE_INT) === false) {
       throw new InvalidArgumentException('Expected number, but got [' . var_export($value, true) . '] instead');
     }
+    
+    $this->raw = $value;
   }
   
   public function __toString() {
