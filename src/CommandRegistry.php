@@ -3,11 +3,15 @@
 class CommandRegistry {
   private $commands = [];
   
-  public function register($command_alias, $ioc_binding) {
-    $this->commands[$command_alias] = $ioc_binding;
+  public function register($alias, $ioc_binding) {
+    $this->commands[$alias] = $ioc_binding;
   }
   
-  public function get($command_alias) {
-    return $this->commands[$command_alias];
+  public function get($alias) {
+    if(!isset($this->commands[$alias])) {
+      throw new NoSuchCommandException($alias);
+    }
+    
+    return $this->commands[$alias];
   }
 }

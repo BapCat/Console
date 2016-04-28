@@ -1,0 +1,31 @@
+#!/bin/env php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use BapCat\Console\CommandParser;
+use BapCat\Console\CommandRegistry;
+use BapCat\Console\ExecutionParser;
+use BapCat\Console\NoSuchCommandException;
+use BapCat\Phi\Phi;
+use BapCat\Values\Text;
+
+$ioc = Phi::instance();
+
+$registry = new CommandRegistry();
+$parser   = new CommandParser($registry);
+$executor = new ExecutionParser($ioc, $registry, $parser);
+
+if($argc <= 1) {
+  echo "Bap bap!\n";
+  exit(0);
+}
+
+$cmd = new Text(implode(' ', array_slice($argv, 1)));
+
+try {
+  $executable = $executor->parse($cmd);
+  $executable->execute();
+} catch(NoSuchCommandException $e) {
+  echo "Command not found!\n";
+}
